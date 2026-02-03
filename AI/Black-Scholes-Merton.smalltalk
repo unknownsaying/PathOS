@@ -1,0 +1,767 @@
+"BlackScholes.st - Complete Black-Scholes-Merton Implementation in Smalltalk"
+Object subclass: #FinancialModel
+    instanceVariableNames: ''
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Finance-Quant'.
+
+!FinancialModel class methods!
+
+normalCDF: x
+    "Cumulative distribution function for the standard normal distribution"
+    | a1 a2 a3 a4 a5 k |
+    a1 := 0.31938153.
+    a2 := -0.356563782.
+    a3 := 1.781477937.
+    a4 := -1.821255978.
+    a5 := 1.330274429.
+    
+    k := 1.0 / (1.0 + (0.2316419 * x abs)).
+    
+    ^ (x < 0.0) 
+        ifTrue: [1.0 - ((self normalCDF: x negated))]
+        ifFalse: [1.0 - ((self normalPDF: x) * 
+                    ((((a5 * k + a4) * k + a3) * k + a2) * k + a1) * k)]!
+
+normalPDF: x
+    "Probability density function for standard normal distribution"
+    ^ (1.0 / (2.0 * Float pi sqrt)) * (Float e raisedTo: (x squared negated / 2.0))!
+
+normInv: p
+    "Inverse normal CDF - approximation using Moro's algorithm"
+    | a0 a1 a2 a3 b0 b1 b2 b3 c0 c1 c2 c3 d0 d1 d2 q t r |
+    
+    a0 := 2.50662823884.
+    a1 := -18.61500062529.
+    a2 := 41.39119773534.
+    a3 := -25.44106049637.
+    
+    b0 := -8.47351093090.
+    b1 := 23.08336743743.
+    b2 := -21.06224101826.
+    b3 := 3.13082909833.
+    
+    c0 := 0.3374754822726147.
+    c1 := 0.9761690190917186.
+    c2 := 0.1607979714918209.
+    c3 := 0.0276438810333863.
+    c4 := 0.0038405729373609.
+    c5 := 0.0003951896511919.
+    c6 := 0.0000321767881768.
+    c7 := 0.0000002888167364.
+    c8 := 0.0000003960315187.
+    
+    q := p - 0.5.
+    
+    (q abs <= 0.42) ifTrue: [
+        r := q squared.
+        ^ q * (((a3 * r + a2) * r + a1) * r + a0) / 
+              ((((b3 * r + b2) * r + b1) * r + b0) * r + 1.0)].
+    
+    r := (p > 0.5) ifTrue: [1.0 - p] ifFalse: [p].
+    r := (-1.0 * (r ln)) ln sqrt.
+    
+    ^ (q > 0.0) ifTrue: [
+        (c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + 
+          r * (c6 + r * (c7 + r * c8))))))) ]
+        ifFalse: [ (c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + 
+          r * (c5 + r * (c6 + r * (c7 + r * c8))))))) negated]]!
+
+blackScholesCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Black-Scholes formula for European call option"
+    | d1 d2 nd1 nd2 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := self normalCDF: d1.
+    nd2 := self normalCDF: d2.
+    
+    ^ (S * (Float e raisedTo: (q negated * T)) * nd1) - 
+      (K * (Float e raisedTo: (r negated * T)) * nd2)!
+
+blackScholesPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Black-Scholes formula for European put option"
+    | d1 d2 nd1 nd2 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := self normalCDF: d1 negated.
+    nd2 := self normalCDF: d2 negated.
+    
+    ^ (K * (Float e raisedTo: (r negated * T)) * nd2) - 
+      (S * (Float e raisedTo: (q negated * T)) * nd1)!
+
+blackScholesDeltaCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Delta for call option"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^ Float e raisedTo: (q negated * T) * (self normalCDF: d1)!
+
+blackScholesDeltaPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Delta for put option"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^ Float e raisedTo: (q negated * T) * ((self normalCDF: d1) - 1.0)!
+
+blackScholesGamma: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Gamma for option (same for calls and puts)"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^ (Float e raisedTo: (q negated * T)) * (self normalPDF: d1) / 
+      (S * sigma * T sqrt)!
+
+blackScholesVega: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Vega for option (same for calls and puts)"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^ S * (Float e raisedTo: (q negated * T)) * (self normalPDF: d1) * T sqrt / 100.0!
+
+blackScholesThetaCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Theta for call option"
+    | d1 d2 nd1 nd2 pdfd1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := self normalCDF: d1.
+    nd2 := self normalCDF: d2.
+    pdfd1 := self normalPDF: d1.
+    
+    ^ (-1.0 * S * (Float e raisedTo: (q negated * T)) * pdfd1 * sigma / 
+       (2.0 * T sqrt)) - 
+      (r * K * (Float e raisedTo: (r negated * T)) * nd2) + 
+      (q * S * (Float e raisedTo: (q negated * T)) * nd1) / 365.0!
+
+blackScholesThetaPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Theta for put option"
+    | d1 d2 nd1 nd2 pdfd1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := self normalCDF: d1 negated.
+    nd2 := self normalCDF: d2 negated.
+    pdfd1 := self normalPDF: d1.
+    
+    ^ (-1.0 * S * (Float e raisedTo: (q negated * T)) * pdfd1 * sigma / 
+       (2.0 * T sqrt)) + 
+      (r * K * (Float e raisedTo: (r negated * T)) * nd2) - 
+      (q * S * (Float e raisedTo: (q negated * T)) * nd1) / 365.0!
+
+blackScholesRhoCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Rho for call option"
+    | d2 |
+    
+    d2 := ((S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt)) - (sigma * T sqrt).
+    
+    ^ K * T * (Float e raisedTo: (r negated * T)) * (self normalCDF: d2) / 100.0!
+
+blackScholesRhoPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Rho for put option"
+    | d2 |
+    
+    d2 := ((S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt)) - (sigma * T sqrt).
+    
+    ^ -1.0 * K * T * (Float e raisedTo: (r negated * T)) * 
+      (self normalCDF: d2 negated) / 100.0!
+
+impliedVolatilityCall: S strike: K time: T rate: r dividend: q marketPrice: C
+    "Calculate implied volatility using Newton-Raphson method"
+    | sigma sigmaPrev f df epsilon maxIter i |
+    
+    sigma := 0.3.  "Initial guess"
+    epsilon := 0.0001.
+    maxIter := 100.
+    i := 0.
+    
+    [i := i + 1.
+     sigmaPrev := sigma.
+     
+     "Calculate Black-Scholes price with current sigma"
+     f := (self blackScholesCall: S strike: K time: T rate: r 
+           volatility: sigma dividend: q) - C.
+     
+     "Calculate vega (derivative with respect to sigma)"
+     df := self blackScholesVega: S strike: K time: T rate: r 
+           volatility: sigma dividend: q.
+     
+     "Newton-Raphson update"
+     sigma := sigma - (f / (df * 100.0)).
+     
+     "Check convergence"
+     (i >= maxIter) or: [(sigma - sigmaPrev) abs <= epsilon]] whileFalse.
+    
+    ^ sigma!
+
+impliedVolatilityPut: S strike: K time: T rate: r dividend: q marketPrice: P
+    "Calculate implied volatility for put option"
+    | sigma sigmaPrev f df epsilon maxIter i |
+    
+    sigma := 0.3.  "Initial guess"
+    epsilon := 0.0001.
+    maxIter := 100.
+    i := 0.
+    
+    [i := i + 1.
+     sigmaPrev := sigma.
+     
+     f := (self blackScholesPut: S strike: K time: T rate: r 
+           volatility: sigma dividend: q) - P.
+     
+     df := self blackScholesVega: S strike: K time: T rate: r 
+           volatility: sigma dividend: q.
+     
+     sigma := sigma - (f / (df * 100.0)).
+     
+     (i >= maxIter) or: [(sigma - sigmaPrev) abs <= epsilon]] whileFalse.
+    
+    ^ sigma!! !
+
+
+"Monte Carlo simulation for path-dependent options"
+Object subclass: #MonteCarloSimulator
+    instanceVariableNames: 'randomGenerator'
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Finance-Quant'.
+
+!MonteCarloSimulator methods!
+
+initialize
+    randomGenerator := Random new.
+    ^self!
+
+generateNormal
+    "Box-Muller transform for normal random variables"
+    | u1 u2 z0 |
+    
+    u1 := 0.0.
+    [u1 := randomGenerator next.
+     u1 > 0.0] whileFalse.
+    
+    u2 := randomGenerator next.
+    
+    z0 := (-2.0 * u1 ln) sqrt * (2.0 * Float pi * u2 cos).
+    
+    ^z0!
+
+simulateGBM: S0 drift: mu volatility: sigma time: T steps: n paths: m
+    "Simulate Geometric Brownian Motion paths"
+    | dt sqrtDt paths price currentZ |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    paths := Array new: m.
+    
+    1 to: m do: [:i |
+        price := S0.
+        paths at: i put: (OrderedCollection new).
+        (paths at: i) add: price.
+        
+        1 to: n do: [:j |
+            currentZ := self generateNormal.
+            price := price * (Float e raisedTo: 
+                     ((mu - (sigma squared / 2.0)) * dt + 
+                      (sigma * sqrtDt * currentZ))).
+            (paths at: i) add: price]].
+    
+    ^paths!
+
+monteCarloEuropeanCall: S strike: K time: T rate: r volatility: sigma paths: m steps: n
+    "Monte Carlo pricing for European call option"
+    | dt sqrtDt sumPayoff drift z finalPrice |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    drift := r - (sigma squared / 2.0).
+    sumPayoff := 0.0.
+    
+    1 to: m do: [:i |
+        finalPrice := S.
+        
+        1 to: n do: [:j |
+            z := self generateNormal.
+            finalPrice := finalPrice * (Float e raisedTo: 
+                         (drift * dt + sigma * sqrtDt * z))].
+        
+        sumPayoff := sumPayoff + (0.0 max: (finalPrice - K))].
+    
+    ^(Float e raisedTo: (r negated * T)) * (sumPayoff / m)!
+
+monteCarloEuropeanPut: S strike: K time: T rate: r volatility: sigma paths: m steps: n
+    "Monte Carlo pricing for European put option"
+    | dt sqrtDt sumPayoff drift z finalPrice |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    drift := r - (sigma squared / 2.0).
+    sumPayoff := 0.0.
+    
+    1 to: m do: [:i |
+        finalPrice := S.
+        
+        1 to: n do: [:j |
+            z := self generateNormal.
+            finalPrice := finalPrice * (Float e raisedTo: 
+                         (drift * dt + sigma * sqrtDt * z))].
+        
+        sumPayoff := sumPayoff + (0.0 max: (K - finalPrice))].
+    
+    ^(Float e raisedTo: (r negated * T)) * (sumPayoff / m)!
+
+monteCarloAsianCall: S strike: K time: T rate: r volatility: sigma paths: m steps: n
+    "Monte Carlo pricing for Asian (average price) call option"
+    | dt sqrtDt sumPayoff drift z price avgPrice |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    drift := r - (sigma squared / 2.0).
+    sumPayoff := 0.0.
+    
+    1 to: m do: [:i |
+        price := S.
+        avgPrice := 0.0.
+        
+        1 to: n do: [:j |
+            z := self generateNormal.
+            price := price * (Float e raisedTo: 
+                     (drift * dt + sigma * sqrtDt * z)).
+            avgPrice := avgPrice + price].
+        
+        avgPrice := avgPrice / n.
+        sumPayoff := sumPayoff + (0.0 max: (avgPrice - K))].
+    
+    ^(Float e raisedTo: (r negated * T)) * (sumPayoff / m)!
+
+monteCarloLookbackCall: S strike: K time: T rate: r volatility: sigma paths: m steps: n
+    "Monte Carlo pricing for lookback call option"
+    | dt sqrtDt sumPayoff drift z price maxPrice |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    drift := r - (sigma squared / 2.0).
+    sumPayoff := 0.0.
+    
+    1 to: m do: [:i |
+        price := S.
+        maxPrice := price.
+        
+        1 to: n do: [:j |
+            z := self generateNormal.
+            price := price * (Float e raisedTo: 
+                     (drift * dt + sigma * sqrtDt * z)).
+            maxPrice := maxPrice max: price].
+        
+        sumPayoff := sumPayoff + (0.0 max: (maxPrice - K))].
+    
+    ^(Float e raisedTo: (r negated * T)) * (sumPayoff / m)!
+
+antitheticVariatesCall: S strike: K time: T rate: r volatility: sigma paths: m steps: n
+    "Variance reduction using antithetic variates for call option"
+    | dt sqrtDt sumPayoff drift z1 z2 price1 price2 |
+    
+    dt := T / n.
+    sqrtDt := dt sqrt.
+    drift := r - (sigma squared / 2.0).
+    sumPayoff := 0.0.
+    
+    1 to: (m // 2) do: [:i |
+        price1 := S.
+        price2 := S.
+        
+        1 to: n do: [:j |
+            z1 := self generateNormal.
+            z2 := z1 negated.  "Antithetic variate"
+            
+            price1 := price1 * (Float e raisedTo: 
+                      (drift * dt + sigma * sqrtDt * z1)).
+            price2 := price2 * (Float e raisedTo: 
+                      (drift * dt + sigma * sqrtDt * z2))].
+        
+        sumPayoff := sumPayoff + 
+                    ((0.0 max: (price1 - K)) + 
+                     (0.0 max: (price2 - K))) / 2.0].
+    
+    ^(Float e raisedTo: (r negated * T)) * (sumPayoff / (m // 2))!! !
+
+
+"Option pricing with dividends and American approximation"
+Object subclass: #AdvancedOptions
+    instanceVariableNames: ''
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Finance-Quant'.
+
+!AdvancedOptions class methods!
+
+americanCallApprox: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Barone-Adesi and Whaley approximation for American call options"
+    | d1 d2 nd1 nd2 M N twoBdivSigmaSq q2 callEuropean infinityCheck |
+    
+    "First compute European call"
+    callEuropean := FinancialModel blackScholesCall: S strike: K 
+                    time: T rate: r volatility: sigma dividend: q.
+    
+    "If no dividends, American = European"
+    q = 0.0 ifTrue: [^callEuropean].
+    
+    "Calculate critical price and early exercise premium"
+    M := (2.0 * r) / (sigma squared).
+    N := (2.0 * (r - q)) / (sigma squared).
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := FinancialModel normalCDF: d1.
+    nd2 := FinancialModel normalCDF: d2.
+    
+    q2 := ((-1.0 * (N - 1.0)) + 
+           (((N - 1.0) squared + (4.0 * M / T)) sqrt)) / 2.0.
+    
+    twoBdivSigmaSq := 2.0 * (r - q) / (sigma squared).
+    
+    infinityCheck := K / (1.0 - (2.0 * (r - q) / 
+                  ((sigma squared) * (1.0 - (Float e raisedTo: (r negated * T)))))).
+    
+    ^callEuropean + (q2 * (S / q2) * 
+      (1.0 - (Float e raisedTo: ((r - q) * T)) * nd1))!
+
+americanPutApprox: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Barone-Adesi and Whaley approximation for American put options"
+    | d1 d2 nd1 nd2 M N q1 putEuropean infinityCheck |
+    
+    putEuropean := FinancialModel blackScholesPut: S strike: K 
+                   time: T rate: r volatility: sigma dividend: q.
+    
+    "If no dividends, still might be early exercise due to interest rates"
+    M := (2.0 * r) / (sigma squared).
+    N := (2.0 * (r - q)) / (sigma squared).
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    nd1 := FinancialModel normalCDF: d1 negated.
+    nd2 := FinancialModel normalCDF: d2 negated.
+    
+    q1 := ((-1.0 * (N - 1.0)) - 
+           (((N - 1.0) squared + (4.0 * M / T)) sqrt)) / 2.0.
+    
+    infinityCheck := K / (1.0 - (2.0 * (r - q) / 
+                  ((sigma squared) * (1.0 - (Float e raisedTo: (r negated * T)))))).
+    
+    ^putEuropean + (q1 * (S / q1) * 
+      (1.0 - (Float e raisedTo: ((r - q) * T)) * nd1))!
+
+binaryCashCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Binary (digital) cash-or-nothing call option"
+    | d2 |
+    
+    d2 := ((S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt)) - (sigma * T sqrt).
+    
+    ^(Float e raisedTo: (r negated * T)) * 
+      (FinancialModel normalCDF: d2)!
+
+binaryCashPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Binary (digital) cash-or-nothing put option"
+    | d2 |
+    
+    d2 := ((S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt)) - (sigma * T sqrt).
+    
+    ^(Float e raisedTo: (r negated * T)) * 
+      (FinancialModel normalCDF: d2 negated)!
+
+binaryAssetCall: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Binary (digital) asset-or-nothing call option"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^S * (Float e raisedTo: (q negated * T)) * 
+      (FinancialModel normalCDF: d1)!
+
+binaryAssetPut: S strike: K time: T rate: r volatility: sigma dividend: q
+    "Binary (digital) asset-or-nothing put option"
+    | d1 |
+    
+    d1 := (S ln - (K ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    
+    ^S * (Float e raisedTo: (q negated * T)) * 
+      (FinancialModel normalCDF: d1 negated)!
+
+gapCall: S strike: K1 trigger: K2 time: T rate: r volatility: sigma dividend: q
+    "Gap call option - payoff: (S - K1) if S > K2, else 0"
+    | d1 d2 |
+    
+    d1 := (S ln - (K2 ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    ^(S * (Float e raisedTo: (q negated * T)) * 
+      (FinancialModel normalCDF: d1)) - 
+     (K1 * (Float e raisedTo: (r negated * T)) * 
+      (FinancialModel normalCDF: d2))!
+
+gapPut: S strike: K1 trigger: K2 time: T rate: r volatility: sigma dividend: q
+    "Gap put option - payoff: (K1 - S) if S < K2, else 0"
+    | d1 d2 |
+    
+    d1 := (S ln - (K2 ln) + ((r - q + (sigma squared / 2.0)) * T)) / 
+          (sigma * T sqrt).
+    d2 := d1 - (sigma * T sqrt).
+    
+    ^(K1 * (Float e raisedTo: (r negated * T)) * 
+      (FinancialModel normalCDF: d2 negated)) - 
+     (S * (Float e raisedTo: (q negated * T)) * 
+      (FinancialModel normalCDF: d1 negated))!! !
+
+
+"Portfolio and risk management"
+Object subclass: #PortfolioAnalyzer
+    instanceVariableNames: 'positions'
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Finance-Quant'.
+
+!PortfolioAnalyzer methods!
+
+initialize
+    positions := OrderedCollection new.
+    ^self!
+
+addPosition: anOption
+    positions add: anOption.
+    ^self!
+
+portfolioDelta: S
+    "Calculate total delta of portfolio"
+    | totalDelta |
+    
+    totalDelta := 0.0.
+    positions do: [:option |
+        totalDelta := totalDelta + (option delta: S)].
+    
+    ^totalDelta!
+
+portfolioGamma: S
+    "Calculate total gamma of portfolio"
+    | totalGamma |
+    
+    totalGamma := 0.0.
+    positions do: [:option |
+        totalGamma := totalGamma + (option gamma: S)].
+    
+    ^totalGamma!
+
+portfolioVega: S
+    "Calculate total vega of portfolio"
+    | totalVega |
+    
+    totalVega := 0.0.
+    positions do: [:option |
+        totalVega := totalVega + (option vega: S)].
+    
+    ^totalVega!
+
+portfolioTheta: S
+    "Calculate total theta of portfolio"
+    | totalTheta |
+    
+    totalTheta := 0.0.
+    positions do: [:option |
+        totalTheta := totalTheta + (option theta: S)].
+    
+    ^totalTheta!
+
+portfolioRho: S
+    "Calculate total rho of portfolio"
+    | totalRho |
+    
+    totalRho := 0.0.
+    positions do: [:option |
+        totalRho := totalRho + (option rho: S)].
+    
+    ^totalRho!
+
+valueAtRisk: portfolioValue confidence: confidenceLevel horizon: days
+    "Calculate Value at Risk using variance-covariance method"
+    | zScore volatility |
+    
+    zScore := FinancialModel normInv: confidenceLevel.
+    volatility := self portfolioVolatility.
+    
+    ^portfolioValue * zScore * volatility * (days sqrt)!! !
+
+
+"Test suite and examples"
+Object subclass: #BlackScholesExamples
+    instanceVariableNames: ''
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Finance-Quant'.
+
+!BlackScholesExamples class methods!
+
+runExample
+    "Run comprehensive Black-Scholes examples"
+    | S K T r sigma q callPrice putPrice deltaCall deltaPut gamma vega |
+    
+    Transcript cr; show: 'BLACK-SCHOLES-MERTON EQUATION IN SMALLTALK'.
+    Transcript cr; show: '==========================================='.
+    
+    "Example parameters"
+    S := 100.0.      "Stock price"
+    K := 100.0.      "Strike price"
+    T := 1.0.        "1 year to expiration"
+    r := 0.05.       "5% risk-free rate"
+    sigma := 0.2.    "20% volatility"
+    q := 0.02.       "2% dividend yield"
+    
+    Transcript cr; show: 'Parameters:'.
+    Transcript cr; show: '  Stock Price (S): ', S printString.
+    Transcript cr; show: '  Strike Price (K): ', K printString.
+    Transcript cr; show: '  Time to Maturity (T): ', T printString, ' years'.
+    Transcript cr; show: '  Risk-free Rate (r): ', (r * 100) printString, '%'.
+    Transcript cr; show: '  Volatility (σ): ', (sigma * 100) printString, '%'.
+    Transcript cr; show: '  Dividend Yield (q): ', (q * 100) printString, '%'.
+    
+    "Calculate prices"
+    callPrice := FinancialModel blackScholesCall: S strike: K time: T 
+                  rate: r volatility: sigma dividend: q.
+    putPrice := FinancialModel blackScholesPut: S strike: K time: T 
+                 rate: r volatility: sigma dividend: q.
+    
+    Transcript cr; show: ''.
+    Transcript cr; show: 'Option Prices:'.
+    Transcript cr; show: '  European Call: $', callPrice printString.
+    Transcript cr; show: '  European Put: $', putPrice printString.
+    
+    "Calculate Greeks"
+    deltaCall := FinancialModel blackScholesDeltaCall: S strike: K time: T 
+                   rate: r volatility: sigma dividend: q.
+    deltaPut := FinancialModel blackScholesDeltaPut: S strike: K time: T 
+                  rate: r volatility: sigma dividend: q.
+    gamma := FinancialModel blackScholesGamma: S strike: K time: T 
+               rate: r volatility: sigma dividend: q.
+    vega := FinancialModel blackScholesVega: S strike: K time: T 
+              rate: r volatility: sigma dividend: q.
+    
+    Transcript cr; show: ''.
+    Transcript cr; show: 'Option Greeks:'.
+    Transcript cr; show: '  Delta (Call): ', deltaCall printString.
+    Transcript cr; show: '  Delta (Put): ', deltaPut printString.
+    Transcript cr; show: '  Gamma: ', gamma printString.
+    Transcript cr; show: '  Vega: ', vega printString, ' per 1% vol change'.
+    
+    "Monte Carlo comparison"
+    Transcript cr; show: ''.
+    Transcript cr; show: 'Monte Carlo Simulation (10,000 paths):'.
+    
+    | monteCarlo mcCall mcPut |
+    monteCarlo := MonteCarloSimulator new.
+    mcCall := monteCarlo monteCarloEuropeanCall: S strike: K time: T 
+                rate: r volatility: sigma paths: 10000 steps: 252.
+    mcPut := monteCarlo monteCarloEuropeanPut: S strike: K time: T 
+               rate: r volatility: sigma paths: 10000 steps: 252.
+    
+    Transcript cr; show: '  Monte Carlo Call: $', mcCall printString.
+    Transcript cr; show: '  Monte Carlo Put: $', mcPut printString.
+    
+    "Implied volatility example"
+    Transcript cr; show: ''.
+    Transcript cr; show: 'Implied Volatility:'.
+    
+    | impliedVolCall impliedVolPut |
+    impliedVolCall := FinancialModel impliedVolatilityCall: S strike: K 
+                       time: T rate: r dividend: q marketPrice: callPrice.
+    impliedVolPut := FinancialModel impliedVolatilityPut: S strike: K 
+                      time: T rate: r dividend: q marketPrice: putPrice.
+    
+    Transcript cr; show: '  From Call Price: ', 
+                 (impliedVolCall * 100) printString, '%'.
+    Transcript cr; show: '  From Put Price: ', 
+                 (impliedVolPut * 100) printString, '%'.
+    
+    "American option approximation"
+    Transcript cr; show: ''.
+    Transcript cr; show: 'American Option Approximation:'.
+    
+    | americanCall americanPut |
+    americanCall := AdvancedOptions americanCallApprox: S strike: K 
+                     time: T rate: r volatility: sigma dividend: q.
+    americanPut := AdvancedOptions americanPutApprox: S strike: K 
+                    time: T rate: r volatility: sigma dividend: q.
+    
+    Transcript cr; show: '  American Call: $', americanCall printString.
+    Transcript cr; show: '  American Put: $', americanPut printString.
+    
+    Transcript cr; show: ''.
+    Transcript cr; show: 'Example complete.'.
+    
+    ^true!
+
+testPutCallParity
+    "Test put-call parity: C - P = S*e^(-qT) - K*e^(-rT)"
+    | S K T r sigma q call put leftSide rightSide difference |
+    
+    S := 100.0.
+    K := 105.0.
+    T := 0.5.
+    r := 0.03.
+    sigma := 0.25.
+    q := 0.01.
+    
+    call := FinancialModel blackScholesCall: S strike: K time: T 
+             rate: r volatility: sigma dividend: q.
+    put := FinancialModel blackScholesPut: S strike: K time: T 
+            rate: r volatility: sigma dividend: q.
+    
+    leftSide := call - put.
+    rightSide := (S * (Float e raisedTo: (q negated * T))) - 
+                 (K * (Float e raisedTo: (r negated * T))).
+    difference := (leftSide - rightSide) abs.
+    
+    Transcript cr; show: 'Put-Call Parity Test:'.
+    Transcript cr; show: '  C - P = ', leftSide printString.
+    Transcript cr; show: '  S*e^(-qT) - K*e^(-rT) = ', rightSide printString.
+    Transcript cr; show: '  Difference: ', difference printString.
+    
+    ^difference < 0.0001!
+
+runAllTests
+    "Run all tests and examples"
+    self runExample.
+    self testPutCallParity.
+    
+    Transcript cr; show: ''.
+    Transcript cr; show: 'All tests completed successfully.'.
+    ^true!! !
+
+
+"Main execution"
+BlackScholesExamples runAllTests.
