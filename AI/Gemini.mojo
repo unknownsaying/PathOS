@@ -18,10 +18,6 @@ alias float32 = DType.float32
 alias int32 = DType.int32
 alias int64 = DType.int64
 
-# ============================================================================
-# MATHEMATICAL FOUNDATIONS
-# ============================================================================
-
 @value
 struct HyperbolicOperations:
     """Advanced hyperbolic and special functions"""
@@ -119,10 +115,6 @@ struct SpectralOperations:
         
         return result
 
-# ============================================================================
-# ADVANCED ACTIVATION FUNCTIONS
-# ============================================================================
-
 @value
 struct ActivationFunctions:
     """Sophisticated neural activation functions"""
@@ -159,9 +151,6 @@ struct ActivationFunctions:
         else:
             return x
 
-# ============================================================================
-# QUANTUM-INSPIRED OPERATIONS
-# ============================================================================
 
 @value
 struct QuantumOperations:
@@ -225,10 +214,6 @@ struct QuantumOperations:
         # Simplified approximation
         let trace = (rho * rho_tilde).trace().real
         return max(0.0, sqrt(abs(trace)))
-
-# ============================================================================
-# ADVANCED OPTIMIZATION ALGORITHMS
-# ============================================================================
 
 @value
 struct OptimizationAlgorithms:
@@ -342,10 +327,6 @@ struct OptimizationAlgorithms:
             temperature *= cooling_rate
         
         return best
-
-# ============================================================================
-# GEMINI LLM CORE ARCHITECTURE
-# ============================================================================
 
 @value
 struct MultiHeadAttention:
@@ -473,9 +454,6 @@ struct PositionalEncoding:
         vectorize[seq_len, d_model // 2](compute)
         return encoding
 
-# ============================================================================
-# ADVANCED LOSS FUNCTIONS
-# ============================================================================
 
 @value
 struct LossFunctions:
@@ -546,10 +524,6 @@ struct LossFunctions:
             distance += abs(cdf1[i] - cdf2[i])
         
         return distance / Float64(cdf1.num_elements())
-
-# ============================================================================
-# GEMINI LLM MAIN CLASS
-# ============================================================================
 
 @value
 struct GeminiLLM:
@@ -833,9 +807,6 @@ struct GeminiLLM:
         else:
             return "Mathematical solution requires specific problem formulation."
 
-# ============================================================================
-# MAIN EXECUTION
-# ============================================================================
 
 def main():
     """Main execution function"""
@@ -911,13 +882,11 @@ def main():
         dummy_input.flatten()[i] = i % 100
     
     let _ = gemini.forward(dummy_input)
-    
     let end_time = now()
     let elapsed = Float64(end_time - start_time) / 1e9
     
     print(f"   • Forward pass time: {elapsed:.3f}s")
     print(f"   • Throughput: {batch_size/elapsed:.0f} sequences/s")
-    
     print("\n" + "="*70)
     print("✅ Gemini Advanced LLM execution complete!")
     print("="*70)
