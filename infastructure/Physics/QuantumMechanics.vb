@@ -239,7 +239,7 @@ Public Class QuantumVisualizer
     Private Function FiniteSquareWellPotential(x As Double) As Double
         Dim wellWidth As Double = 6
         Dim wellDepth As Double = 10
-        If Math.Abs(x) <= wellWidth/2 Then
+        If Abs(x) <= wellWidth/2 Then
             Return 0
         Else
             Return wellDepth
@@ -248,14 +248,14 @@ Public Class QuantumVisualizer
     
     Private Function CoulombPotential(x As Double) As Double
         ' Simplified 1D Coulomb potential
-        Dim r As Double = Math.Abs(x) + 0.1 ' Avoid singularity
+        Dim r As Double = Abs(x) + 0.1 ' Avoid singularity
         Return -1.0 / r
     End Function
     
     Private Function DoubleWellPotential(x As Double) As Double
         Dim a As Double = 0.5
         Dim b As Double = 3.0
-        Return a * Math.Pow(x * x - b * b, 2)
+        Return a * Pow(x * x - b * b, 2)
     End Function
     
     Private Function StepPotential(x As Double) As Double
@@ -501,13 +501,13 @@ Public Class QuantumVisualizer
                 Dim psi As Complex = waveFunction.GetValue(x, time)
                 
                 ' Calculate phase angle
-                Dim phase As Double = Math.Atan2(psi.Imaginary, psi.Real)
-                Dim magnitude As Double = Math.Sqrt(psi.Real * psi.Real + psi.Imaginary * psi.Imaginary)
+                Dim phase As Double = Atan2(psi.Imaginary, psi.Real)
+                Dim magnitude As Double = Sqrt(psi.Real * psi.Real + psi.Imaginary * psi.Imaginary)
                 
                 ' Draw phase arrow
                 Dim arrowLength As Integer = CInt(magnitude * scale * 5)
-                Dim endX As Single = xPixel + CSng(Math.Cos(phase) * arrowLength)
-                Dim endY As Single = centerY - CSng(Math.Sin(phase) * arrowLength)
+                Dim endX As Single = xPixel + CSng(Cos(phase) * arrowLength)
+                Dim endY As Single = centerY - CSng(Sin(phase) * arrowLength)
                 
                 ' Draw arrow
                 g.DrawLine(phasePen, xPixel, centerY, endX, endY)
@@ -516,10 +516,10 @@ Public Class QuantumVisualizer
                 Dim arrowSize As Integer = 5
                 Dim arrowPoints() As PointF = {
                     New PointF(endX, endY),
-                    New PointF(endX - arrowSize * CSng(Math.Cos(phase - Math.PI/6)), 
-                              endY + arrowSize * CSng(Math.Sin(phase - Math.PI/6))),
-                    New PointF(endX - arrowSize * CSng(Math.Cos(phase + Math.PI/6)), 
-                              endY + arrowSize * CSng(Math.Sin(phase + Math.PI/6)))
+                    New PointF(endX - arrowSize * CSng(Cos(phase - PI/6)), 
+                              endY + arrowSize * CSng(Sin(phase - PI/6))),
+                    New PointF(endX - arrowSize * CSng(Cos(phase + PI/6)), 
+                              endY + arrowSize * CSng(Sin(phase + PI/6)))
                 }
                 g.FillPolygon(Brushes.Magenta, arrowPoints)
             Next
@@ -606,7 +606,7 @@ Public Class QuantumVisualizer
     
     Private Sub AnimationTimer_Tick(sender As Object, e As EventArgs) Handles animationTimer.Tick
         time += 0.05 * (trkTimeScale.Value / 50.0)
-        If time > 2 * Math.PI Then time = 0
+        If time > 2 * PI Then time = 0
         UpdateVisualization()
     End Sub
     
@@ -658,7 +658,7 @@ Public Class QuantumSystem
     
     Private Function DefaultPotential(x As Double) As Double
         Dim L As Double = 10
-        If Math.Abs(x) <= L/2 Then Return 0 Else Return Double.MaxValue
+        If Abs(x) <= L/2 Then Return 0 Else Return Double.MaxValue
     End Function
     
     Public Function GetPotential(x As Double) As Double
@@ -670,7 +670,7 @@ Public Class QuantumSystem
         Select Case quantumVisualizer?.PotentialType ' Access from main form
             Case PotentialType.InfiniteSquareWell
                 Dim L As Double = 10
-                Return (n * n * Math.PI * Math.PI * ħ * ħ) / (2 * m * L * L)
+                Return (n * n * PI * PI * ħ * ħ) / (2 * m * L * L)
                 
             Case PotentialType.HarmonicOscillator
                 Dim omega As Double = 1.0
@@ -687,8 +687,8 @@ Public Class QuantumSystem
     
     Public Function CalculateWavelength(energy As Double) As Double
         If energy <= 0 Then Return Double.MaxValue
-        Dim p As Double = Math.Sqrt(2 * m * energy) ' Momentum
-        Return 2 * Math.PI * ħ / p ' De Broglie wavelength
+        Dim p As Double = Sqrt(2 * m * energy) ' Momentum
+        Return 2 * PI * ħ / p ' De Broglie wavelength
     End Function
     
     Public Function GetEnergyLevels(maxN As Integer) As Double()
@@ -726,7 +726,7 @@ Public Class QuantumSystem
         Next
         
         ' Normalize
-        Dim norm As Double = Math.Sqrt(Integrate(Function(xi) psi(CInt((xi + 5) / dx)) * psi(CInt((xi + 5) / dx)), -5, 5))
+        Dim norm As Double = Sqrt(Integrate(Function(xi) psi(CInt((xi + 5) / dx)) * psi(CInt((xi + 5) / dx)), -5, 5))
         For i As Integer = 0 To steps
             psi(i) /= norm
         Next
@@ -838,11 +838,11 @@ Public Class WaveFunction
         Dim k As Double = N * PI / L
         Dim omega As Double = (ħ * k * k) / (2 * m)
         
-        If Math.Abs(x) > L/2 Then
+        If Abs(x) > L/2 Then
             Return Complex.Zero
         Else
-            Dim amplitude As Double = Math.Sqrt(2 / L)
-            Dim spatialPart As Double = amplitude * Math.Sin(k * (x + L/2))
+            Dim amplitude As Double = Sqrt(2 / L)
+            Dim spatialPart As Double = amplitude * Sin(k * (x + L/2))
             Dim timePart As Complex = Complex.Exp(-Complex.ImaginaryOne * omega * t)
             Return spatialPart * timePart
         End If
@@ -851,15 +851,15 @@ Public Class WaveFunction
     Private Function HarmonicOscillatorPsi(x As Double, t As Double) As Complex
         ' Hermite polynomial approximation
         Dim omega As Double = 1.0
-        Dim alpha As Double = Math.Sqrt(m * omega / ħ)
+        Dim alpha As Double = Sqrt(m * omega / ħ)
         Dim xi As Double = alpha * x
         
         ' Ground state for simplicity
-        Dim psi0 As Double = Math.Pow(alpha / Math.Sqrt(PI), 0.5) * Math.Exp(-xi * xi / 2)
+        Dim psi0 As Double = Pow(alpha / Sqrt(PI), 0.5) * Exp(-xi * xi / 2)
         
         ' Excited states using Hermite polynomials
         Dim Hn As Double = HermitePolynomial(N, xi)
-        Dim spatialPart As Double = psi0 * Hn / Math.Sqrt(Math.Pow(2, N) * Factorial(N))
+        Dim spatialPart As Double = psi0 * Hn / Sqrt(Pow(2, N) * Factorial(N))
         Dim energy As Double = ħ * omega * (N + 0.5)
         Dim timePart As Complex = Complex.Exp(-Complex.ImaginaryOne * energy * t / ħ)
         
@@ -869,15 +869,15 @@ Public Class WaveFunction
     Private Function HydrogenPsi(x As Double, t As Double) As Complex
         ' Simplified 1D hydrogen-like wavefunction
         Dim a0 As Double = 1.0 ' Bohr radius
-        Dim r As Double = Math.Abs(x) + 0.001
+        Dim r As Double = Abs(x) + 0.001
         
         Select Case N
             Case 1 ' 1s orbital
-                Dim psi As Double = 2 * Math.Exp(-r / a0) / Math.Sqrt(4 * PI)
+                Dim psi As Double = 2 * Exp(-r / a0) / Sqrt(4 * PI)
                 Return psi * Complex.Exp(-Complex.ImaginaryOne * 13.6 * t / ħ)
                 
             Case 2 ' 2s orbital
-                Dim psi As Double = (1 / Math.Sqrt(32 * PI)) * (2 - r / a0) * Math.Exp(-r / (2 * a0))
+                Dim psi As Double = (1 / Sqrt(32 * PI)) * (2 - r / a0) * Exp(-r / (2 * a0))
                 Return psi * Complex.Exp(-Complex.ImaginaryOne * 3.4 * t / ħ)
                 
             Case Else
@@ -891,11 +891,11 @@ Public Class WaveFunction
         Dim k0 As Double = N ' Central wave number
         Dim x0 As Double = 0 ' Center position
         
-        Dim envelope As Double = Math.Exp(-(x - x0) * (x - x0) / (4 * sigma * sigma))
+        Dim envelope As Double = Exp(-(x - x0) * (x - x0) / (4 * sigma * sigma))
         Dim oscillation As Complex = Complex.Exp(Complex.ImaginaryOne * k0 * x)
         Dim timeEvolution As Complex = Complex.Exp(-Complex.ImaginaryOne * ħ * k0 * k0 * t / (2 * m))
         
-        Dim normalization As Double = 1 / Math.Sqrt(sigma * Math.Sqrt(2 * PI))
+        Dim normalization As Double = 1 / Sqrt(sigma * Sqrt(2 * PI))
         Return normalization * envelope * oscillation * timeEvolution
     End Function
     
@@ -966,7 +966,7 @@ Public Class WaveFunction
     
     Public Function GetQuantumInfo(n As Integer, t As Double) As String
         Dim energy As Double = ħ * 1.0 * (n + 0.5) ' Simplified
-        Dim wavelength As Double = 2 * PI / Math.Sqrt(2 * m * energy / (ħ * ħ))
+        Dim wavelength As Double = 2 * PI / Sqrt(2 * m * energy / (ħ * ħ))
         
         Return $"Quantum State Information:{vbCrLf}" &
                $"Principal Quantum Number: n = {n}{vbCrLf}" &
@@ -1035,7 +1035,7 @@ Public Module QuantumPhysics
     Public Function ParticleInBoxWaveFunction(n As Integer, L As Double, x As Double) As Double
         ' ψ_n(x) = √(2/L) sin(nπx/L)
         If x < 0 Or x > L Then Return 0
-        Return Math.Sqrt(2 / L) * Math.Sin(n * PI * x / L)
+        Return Sqrt(2 / L) * Sin(n * PI * x / L)
     End Function
     
     Public Function ParticleInBoxEnergy(n As Integer, L As Double, m As Double) As Double
@@ -1068,12 +1068,12 @@ Public Module QuantumPhysics
         Dim a As Double = a0
         Select Case n
             Case 1
-                Return 2 * Math.Exp(-r / a) / Math.Sqrt(4 * PI)
+                Return 2 * Exp(-r / a) / Sqrt(4 * PI)
             Case 2
                 If l = 0 Then
-                    Return (1 / Math.Sqrt(32 * PI * a * a * a)) * (2 - r / a) * Math.Exp(-r / (2 * a))
+                    Return (1 / Sqrt(32 * PI * a * a * a)) * (2 - r / a) * Exp(-r / (2 * a))
                 ElseIf l = 1 Then
-                    Return (1 / Math.Sqrt(32 * PI * a * a * a)) * (r / a) * Math.Exp(-r / (2 * a))
+                    Return (1 / Sqrt(32 * PI * a * a * a)) * (r / a) * Exp(-r / (2 * a))
                 End If
         End Select
         Return 0
@@ -1083,12 +1083,12 @@ Public Module QuantumPhysics
         ' Simplified spherical harmonics
         Select Case l
             Case 0
-                Return 1 / Math.Sqrt(4 * PI)
+                Return 1 / Sqrt(4 * PI)
             Case 1
                 Select Case m
-                    Case 0 : Return Math.Sqrt(3 / (4 * PI)) * Math.Cos(theta)
-                    Case 1 : Return -Math.Sqrt(3 / (8 * PI)) * Math.Sin(theta) * Complex.Exp(Complex.ImaginaryOne * phi)
-                    Case -1 : Return Math.Sqrt(3 / (8 * PI)) * Math.Sin(theta) * Complex.Exp(-Complex.ImaginaryOne * phi)
+                    Case 0 : Return Sqrt(3 / (4 * PI)) * Cos(theta)
+                    Case 1 : Return -Sqrt(3 / (8 * PI)) * Sin(theta) * Complex.Exp(Complex.ImaginaryOne * phi)
+                    Case -1 : Return Sqrt(3 / (8 * PI)) * Sin(theta) * Complex.Exp(-Complex.ImaginaryOne * phi)
                 End Select
         End Select
         Return 0
@@ -1098,23 +1098,23 @@ Public Module QuantumPhysics
     Public Function TunnelingProbability(E As Double, V As Double, a As Double, m As Double) As Double
         ' Transmission coefficient for rectangular barrier
         If E > V Then
-            Return 1 / (1 + (V * V * Math.Sin(2 * a * Math.Sqrt(2 * m * (E - V)) / ħ) / (4 * E * (E - V))))
+            Return 1 / (1 + (V * V * Sin(2 * a * Sqrt(2 * m * (E - V)) / ħ) / (4 * E * (E - V))))
         Else
-            Dim kappa As Double = Math.Sqrt(2 * m * (V - E)) / ħ
-            Return Math.Exp(-2 * kappa * a)
+            Dim kappa As Double = Sqrt(2 * m * (V - E)) / ħ
+            Return Exp(-2 * kappa * a)
         End If
     End Function
     
     ' 5. Fermi-Dirac Distribution
     Public Function FermiDirac(E As Double, mu As Double, T As Double) As Double
         ' f(E) = 1 / (exp((E-μ)/kBT) + 1)
-        Return 1 / (Math.Exp((E - mu) / (kB * T)) + 1)
+        Return 1 / (Exp((E - mu) / (kB * T)) + 1)
     End Function
     
     ' 6. Bose-Einstein Distribution
     Public Function BoseEinstein(E As Double, mu As Double, T As Double) As Double
         ' n(E) = 1 / (exp((E-μ)/kBT) - 1)
-        Return 1 / (Math.Exp((E - mu) / (kB * T)) - 1)
+        Return 1 / (Exp((E - mu) / (kB * T)) - 1)
     End Function
     
     ' Quantum Operators
@@ -1147,7 +1147,7 @@ Public Module QuantumPhysics
     Public Function PartitionFunction(energies As Double(), T As Double) As Double
         Dim Z As Double = 0
         For Each E In energies
-            Z += Math.Exp(-E / (kB * T))
+            Z += Exp(-E / (kB * T))
         Next
         Return Z
     End Function
@@ -1156,7 +1156,7 @@ Public Module QuantumPhysics
         Dim Z As Double = PartitionFunction(energies, T)
         Dim sum As Double = 0
         For i As Integer = 0 To energies.Length - 1
-            sum += A(i) * Math.Exp(-energies(i) / (kB * T))
+            sum += A(i) * Exp(-energies(i) / (kB * T))
         Next
         Return sum / Z
     End Function
@@ -1165,8 +1165,8 @@ Public Module QuantumPhysics
     Public Function QubitState(theta As Double, phi As Double) As Complex()
         ' |ψ⟩ = cos(θ/2)|0⟩ + e^(iφ)sin(θ/2)|1⟩
         Return New Complex() {
-            Math.Cos(theta / 2),
-            Complex.Exp(Complex.ImaginaryOne * phi) * Math.Sin(theta / 2)
+            Cos(theta / 2),
+            Complex.Exp(Complex.ImaginaryOne * phi) * Sin(theta / 2)
         }
     End Function
     
@@ -1215,3 +1215,4 @@ Module Program
         Application.Run(New QuantumVisualizer())
     End Sub
 End Module
+
