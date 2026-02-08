@@ -1,12 +1,10 @@
-; ============================================================================
 ; LINUX KERNEL CORE (x86-64 Assembly)
-; ============================================================================
+
 ; This represents a simplified Linux kernel core with:
 ; - Task scheduling
 ; - Memory management
 ; - System call handling
 ; - Interrupt handling
-; ============================================================================
 
 [BITS 64]
 [ORG 0xFFFFFF8000000000]  ; Linux kernel virtual address space
@@ -18,9 +16,7 @@ global schedule
 global syscall_handler
 global page_fault_handler
 
-; ============================================================================
 ; LINUX KERNEL CONSTANTS AND STRUCTURES
-; ============================================================================
 
 ; Task states
 TASK_RUNNING     equ 0
@@ -63,9 +59,8 @@ PG_PSE           equ 1 << 7
 PG_GLOBAL        equ 1 << 8
 PG_NX            equ 1 << 63  ; No-execute bit
 
-; ============================================================================
+
 ; KERNEL ENTRY POINT
-; ============================================================================
 
 _start:
     ; Clear direction flag
@@ -98,9 +93,8 @@ _start:
     cli
     hlt
 
-; ============================================================================
+
 ; KERNEL MAIN FUNCTION
-; ============================================================================
 
 kernel_main:
     push rbp
@@ -128,9 +122,8 @@ kernel_main:
     pop rbp
     ret
 
-; ============================================================================
+
 ; SCHEDULER IMPLEMENTATION
-; ============================================================================
 
 ; Simple round-robin scheduler
 schedule:
@@ -254,9 +247,8 @@ scheduler_loop:
     
     jmp .loop
 
-; ============================================================================
+
 ; SYSTEM CALL HANDLER
-; ============================================================================
 
 syscall_handler:
     ; Save registers
@@ -322,9 +314,9 @@ syscall_handler:
     mov rax, -1          ; Return -ENOSYS
     jmp syscall_handler  ; Jump to restore registers
 
-; ============================================================================
+
 ; MEMORY MANAGEMENT
-; ============================================================================
+
 
 ; Page fault handler
 page_fault_handler:
@@ -394,9 +386,9 @@ init_memory:
     pop rbp
     ret
 
-; ============================================================================
+
 ; INTERRUPT HANDLING
-; ============================================================================
+
 
 init_idt:
     push rbp
@@ -456,9 +448,9 @@ default_interrupt_handler:
     
     iretq
 
-; ============================================================================
+
 ; UTILITY FUNCTIONS
-; ============================================================================
+
 
 kernel_print:
     ; rdi = string pointer
@@ -484,9 +476,9 @@ get_current_task:
     mov rax, [current_task]
     ret
 
-; ============================================================================
+
 ; DATA SECTION
-; ============================================================================
+
 
 section .data
 align 4096
@@ -523,10 +515,7 @@ MAX_SYSCALLS equ ($ - syscall_table) / 8
 ; Console buffer
 console_buffer: db 0
 
-; ============================================================================
 ; STACK SECTION
-; ============================================================================
-
 section .bss
 align 16
 
@@ -538,3 +527,4 @@ kernel_stack_top:
 task0: resb task_struct.size
 task1: resb task_struct.size
 task2: resb task_struct.size
+
