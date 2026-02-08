@@ -661,11 +661,11 @@ Public Class QuantumSystem
         If Abs(x) <= L/2 Then Return 0 Else Return Double.MaxValue
     End Function
     
-    Public Function GetPotential(x As Double) As Double
+    Function GetPotential(x As Double) As Double
         Return PotentialFunction.Invoke(x)
     End Function
     
-    Public Function CalculateEnergy(n As Integer) As Double
+    Function CalculateEnergy(n As Integer) As Double
         ' Different energy formulas for different potentials
         Select Case quantumVisualizer?.PotentialType ' Access from main form
             Case PotentialType.InfiniteSquareWell
@@ -685,13 +685,13 @@ Public Class QuantumSystem
         End Select
     End Function
     
-    Public Function CalculateWavelength(energy As Double) As Double
+    Function CalculateWavelength(energy As Double) As Double
         If energy <= 0 Then Return Double.MaxValue
         Dim p As Double = Sqrt(2 * m * energy) ' Momentum
         Return 2 * PI * ħ / p ' De Broglie wavelength
     End Function
     
-    Public Function GetEnergyLevels(maxN As Integer) As Double()
+    Function GetEnergyLevels(maxN As Integer) As Double()
         Dim levels(maxN - 1) As Double
         For i As Integer = 1 To maxN
             levels(i - 1) = CalculateEnergy(i)
@@ -700,7 +700,7 @@ Public Class QuantumSystem
     End Function
     
     ' Solve time-independent Schrödinger equation numerically
-    Public Function SolveSchrodinger(n As Integer, Optional steps As Integer = 1000) As Double()
+    Function SolveSchrodinger(n As Integer, Optional steps As Integer = 1000) As Double()
         Dim psi(steps) As Double
         Dim dx As Double = 0.01
         Dim x As Double = -5
@@ -748,7 +748,7 @@ Public Class QuantumSystem
     End Function
     
     ' Calculate expectation values
-    Public Function ExpectationValue(operatorType As OperatorType, psi As Double()) As Double
+    Function ExpectationValue(operatorType As OperatorType, psi As Double()) As Double
         Select Case operatorType
             Case OperatorType.Position
                 Return IntegrateArray(Function(i, xi) xi * psi(i) * psi(i))
@@ -817,7 +817,7 @@ Public Class WaveFunction
         Me.N = n
     End Sub
     
-    Public Function GetValue(x As Double, t As Double) As Complex
+    Function GetValue(x As Double, t As Double) As Complex
         Select Case CurrentPotential
             Case PotentialType.InfiniteSquareWell
                 Return InfiniteSquareWellPsi(x, t)
@@ -924,7 +924,7 @@ Public Class WaveFunction
         Return result
     End Function
     
-    Public Function CalculateNorm() As Double
+    Function CalculateNorm() As Double
         ' Calculate ∫|ψ|² dx
         Dim norm As Double = 0
         Dim dx As Double = 0.01
@@ -937,7 +937,7 @@ Public Class WaveFunction
         Return norm
     End Function
     
-    Public Function SimulateMeasurement() As Double
+    Function SimulateMeasurement() As Double
         ' Monte Carlo sampling of probability distribution
         Dim rng As New Random()
         Dim cumulativeProb As Double = 0
@@ -964,7 +964,7 @@ Public Class WaveFunction
         LastMeasurement = position
     End Sub
     
-    Public Function GetQuantumInfo(n As Integer, t As Double) As String
+    Function GetQuantumInfo(n As Integer, t As Double) As String
         Dim energy As Double = ħ * 1.0 * (n + 0.5) ' Simplified
         Dim wavelength As Double = 2 * PI / Sqrt(2 * m * energy / (ħ * ħ))
         
@@ -998,7 +998,7 @@ Public Module QuantumPhysics
     Public Const a0 As Double = 5.29177210903E-11 ' Bohr radius (m)
     
     ' Quantum Mechanics Equations
-    Public Function TimeDependentSchrodinger(psi As Complex, V As Double, m As Double, 
+    Function TimeDependentSchrodinger(psi As Complex, V As Double, m As Double, 
                                            x As Double, t As Double) As Complex
         ' iħ ∂ψ/∂t = -ħ²/2m ∇²ψ + Vψ
         Dim laplacian As Double = CalculateLaplacian(psi, x)
@@ -1006,7 +1006,7 @@ Public Module QuantumPhysics
                (ħ * ħ / (2 * m)) * laplacian + V * psi
     End Function
     
-    Public Function CalculateLaplacian(psi As Complex, x As Double) As Double
+    Function CalculateLaplacian(psi As Complex, x As Double) As Double
         ' Second derivative approximation
         Dim dx As Double = 0.001
         Dim psiPlus As Complex = psi + Complex(0, 0) ' Placeholder
@@ -1015,47 +1015,47 @@ Public Module QuantumPhysics
     End Function
     
     ' Heisenberg Uncertainty Principle
-    Public Function UncertaintyPrinciple(Δx As Double, Δp As Double) As Boolean
+    Function UncertaintyPrinciple(Δx As Double, Δp As Double) As Boolean
         Return Δx * Δp >= ħ / 2
     End Function
     
     ' De Broglie Wavelength
-    Public Function DeBroglieWavelength(p As Double) As Double
+    Function DeBroglieWavelength(p As Double) As Double
         Return h / p
     End Function
     
     ' Compton Wavelength
-    Public Function ComptonWavelength(m As Double) As Double
+    Function ComptonWavelength(m As Double) As Double
         Return h / (m * c)
     End Function
     
     ' Schrödinger Equation Solutions
     
     ' 1. Particle in a Box
-    Public Function ParticleInBoxWaveFunction(n As Integer, L As Double, x As Double) As Double
+    Function ParticleInBoxWaveFunction(n As Integer, L As Double, x As Double) As Double
         ' ψ_n(x) = √(2/L) sin(nπx/L)
         If x < 0 Or x > L Then Return 0
         Return Sqrt(2 / L) * Sin(n * PI * x / L)
     End Function
     
-    Public Function ParticleInBoxEnergy(n As Integer, L As Double, m As Double) As Double
+    Function ParticleInBoxEnergy(n As Integer, L As Double, m As Double) As Double
         ' E_n = (n²π²ħ²)/(2mL²)
         Return (n * n * PI * PI * ħ * ħ) / (2 * m * L * L)
     End Function
     
     ' 2. Quantum Harmonic Oscillator
-    Public Function HarmonicOscillatorEnergy(n As Integer, omega As Double) As Double
+    Function HarmonicOscillatorEnergy(n As Integer, omega As Double) As Double
         ' E_n = ħω(n + 1/2)
         Return ħ * omega * (n + 0.5)
     End Function
     
     ' 3. Hydrogen Atom
-    Public Function HydrogenEnergy(n As Integer) As Double
+    Function HydrogenEnergy(n As Integer) As Double
         ' E_n = -13.6 eV / n²
         Return -13.6 / (n * n)
     End Function
     
-    Public Function HydrogenWaveFunction(n As Integer, l As Integer, m As Integer, 
+    Function HydrogenWaveFunction(n As Integer, l As Integer, m As Integer, 
                                         r As Double, theta As Double, phi As Double) As Complex
         ' ψ_nlm(r,θ,φ) = R_nl(r)Y_lm(θ,φ)
         Dim radial As Double = HydrogenRadial(n, l, r)
@@ -1095,7 +1095,7 @@ Public Module QuantumPhysics
     End Function
     
     ' 4. Tunneling Probability
-    Public Function TunnelingProbability(E As Double, V As Double, a As Double, m As Double) As Double
+    Function TunnelingProbability(E As Double, V As Double, a As Double, m As Double) As Double
         ' Transmission coefficient for rectangular barrier
         If E > V Then
             Return 1 / (1 + (V * V * Sin(2 * a * Sqrt(2 * m * (E - V)) / ħ) / (4 * E * (E - V))))
@@ -1106,13 +1106,13 @@ Public Module QuantumPhysics
     End Function
     
     ' 5. Fermi-Dirac Distribution
-    Public Function FermiDirac(E As Double, mu As Double, T As Double) As Double
+    Function FermiDirac(E As Double, mu As Double, T As Double) As Double
         ' f(E) = 1 / (exp((E-μ)/kBT) + 1)
         Return 1 / (Exp((E - mu) / (kB * T)) + 1)
     End Function
     
     ' 6. Bose-Einstein Distribution
-    Public Function BoseEinstein(E As Double, mu As Double, T As Double) As Double
+    Function BoseEinstein(E As Double, mu As Double, T As Double) As Double
         ' n(E) = 1 / (exp((E-μ)/kBT) - 1)
         Return 1 / (Exp((E - mu) / (kB * T)) - 1)
     End Function
@@ -1144,7 +1144,7 @@ Public Module QuantumPhysics
     End Class
     
     ' Quantum Statistical Mechanics
-    Public Function PartitionFunction(energies As Double(), T As Double) As Double
+    Function PartitionFunction(energies As Double(), T As Double) As Double
         Dim Z As Double = 0
         For Each E In energies
             Z += Exp(-E / (kB * T))
@@ -1152,7 +1152,7 @@ Public Module QuantumPhysics
         Return Z
     End Function
     
-    Public Function ThermalAverage(A As Double(), energies As Double(), T As Double) As Double
+    Function ThermalAverage(A As Double(), energies As Double(), T As Double) As Double
         Dim Z As Double = PartitionFunction(energies, T)
         Dim sum As Double = 0
         For i As Integer = 0 To energies.Length - 1
@@ -1162,7 +1162,7 @@ Public Module QuantumPhysics
     End Function
     
     ' Quantum Information
-    Public Function QubitState(theta As Double, phi As Double) As Complex()
+    Function QubitState(theta As Double, phi As Double) As Complex()
         ' |ψ⟩ = cos(θ/2)|0⟩ + e^(iφ)sin(θ/2)|1⟩
         Return New Complex() {
             Cos(theta / 2),
@@ -1170,7 +1170,7 @@ Public Module QuantumPhysics
         }
     End Function
     
-    Public Function DensityMatrix(psi As Complex()) As Complex(,)
+    Function DensityMatrix(psi As Complex()) As Complex(,)
         Dim rho(psi.Length - 1, psi.Length - 1) As Complex
         For i As Integer = 0 To psi.Length - 1
             For j As Integer = 0 To psi.Length - 1
@@ -1181,18 +1181,18 @@ Public Module QuantumPhysics
     End Function
     
     ' Relativistic Quantum Mechanics
-    Public Function KleinGordonEquation(phi As Complex, m As Double) As Complex
+    Function KleinGordonEquation(phi As Complex, m As Double) As Complex
         ' (∂²/∂t² - ∇² + m²)φ = 0
         Return Complex.Zero ' Simplified
     End Function
     
-    Public Function DiracEquation(psi As Complex(), m As Double) As Complex()
+    Function DiracEquation(psi As Complex(), m As Double) As Complex()
         ' (iγᵘ∂ᵘ - m)ψ = 0
         Return New Complex() {Complex.Zero, Complex.Zero, Complex.Zero, Complex.Zero}
     End Function
     
     ' Path Integral Formulation
-    Public Function Propagator(xf As Double, xi As Double, t As Double, m As Double) As Complex
+    Function Propagator(xf As Double, xi As Double, t As Double, m As Double) As Complex
         ' K(xf, xi; t) = ⟨xf|exp(-iHt/ħ)|xi⟩
         Dim S As Double = ClassicalAction(xf, xi, t, m)
         Return Complex.Exp(Complex.ImaginaryOne * S / ħ)
@@ -1215,4 +1215,5 @@ Module Program
         Application.Run(New QuantumVisualizer())
     End Sub
 End Module
+
 
