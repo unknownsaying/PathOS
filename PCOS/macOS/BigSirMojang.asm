@@ -1,10 +1,10 @@
-; ============================================================================
+
 ; macOS (DARWIN/XNU) KERNEL CORE (x86-64 Assembly)
-; ============================================================================
+
 ; This represents a simplified macOS kernel core (Mach + BSD hybrid)
 ; = Mach microkernel: IPC, memory management, scheduling
 ; = BSD layer: POSIX API, file systems, networking
-; ============================================================================
+
 
 [BITS 64]
 [ORG 0xFFFFFF8000000000]  ; XNU kernel virtual address space
@@ -16,9 +16,9 @@ global mach_msg_trap
 global thread_switch
 global vm_fault
 
-; ============================================================================
+
 ; MAC OS KERNEL CONSTANTS AND STRUCTURES
-; ============================================================================
+
 
 ; Thread states (from Mach)
 TH_WAIT       equ 1
@@ -38,9 +38,9 @@ MACH_PORT_RIGHT_SEND_ONCE equ 3
 MACH_PORT_RIGHT_DEAD_NAME equ 4
 MACH_PORT_RIGHT_PORT_SET  equ 5
 
-; ============================================================================
+
 ; MACH THREAD CONTROL BLOCK STRUCTURE
-; ============================================================================
+
 
 struc thread
     .machine:          resq 1    ; Machine-dependent state
@@ -62,9 +62,9 @@ struc thread
     .size:
 endstruc
 
-; ============================================================================
+
 ; MACH PORT STRUCTURE
-; ============================================================================
+
 
 struc ipc_port
     .ip_object:        resq 1    ; IPC object header
@@ -87,9 +87,9 @@ struc ipc_port
     .size:
 endstruc
 
-; ============================================================================
+
 ; KERNEL ENTRY POINT (XNU BOOTSTRAP)
-; ============================================================================
+
 
 _start:
     ; XNU bootstrapping
@@ -122,9 +122,9 @@ _start_first_cpu:
     pop rbp
     ret
 
-; ============================================================================
+
 ; KERNEL MAIN FUNCTION
-; ============================================================================
+
 
 kmain:
     push rbp
@@ -156,9 +156,9 @@ kmain:
     pop rbp
     ret
 
-; ============================================================================
+
 ; MACH IPC SYSTEM (CORE OF XNU)
-; ============================================================================
+
 
 ; Mach message trap - primary IPC mechanism
 mach_msg_trap:
@@ -271,9 +271,9 @@ mach_msg_send:
     mov rax, 0x1000000C     ; MACH_SEND_INVALID_RIGHT
     jmp .send_done
 
-; ============================================================================
+
 ; MACH THREAD SCHEDULING
-; ============================================================================
+
 
 thread_switch:
     ; rdi = switch_infos, rsi = option, rdx = option_time
@@ -357,9 +357,9 @@ thread_context_switch:
     pop rbp
     ret
 
-; ============================================================================
+
 ; VIRTUAL MEMORY (MACH VM)
-; ============================================================================
+
 
 vm_fault:
     ; rdi = fault address, rsi = fault type, rdx = fault info
@@ -412,9 +412,9 @@ vm_fault:
     mov rax, 0x10000002     ; KERN_PROTECTION_FAILURE
     jmp .vm_fault_done
 
-; ============================================================================
+
 ; BSD SYSTEM CALL HANDLER
-; ============================================================================
+
 
 ; BSD system calls (Mach trap interface)
 bsd_syscall:
@@ -451,9 +451,9 @@ bsd_syscall:
     mov rax, -1             ; Invalid system call
     jmp .bsd_syscall_done
 
-; ============================================================================
+
 ; I/O KIT DRIVER SUPPORT (SIMPLIFIED)
-; ============================================================================
+
 
 iokit_init:
     push rbp
@@ -497,9 +497,9 @@ iokit_method_call:
     pop rbx
     ret
 
-; ============================================================================
+
 ; DATA SECTION
-; ============================================================================
+
 
 section .data
 align 4096
@@ -531,17 +531,15 @@ bsd_syscall_table:
     dq bsd_syscall_close    ; 6
 BSD_SYS_MAX equ ($ - bsd_syscall_table) / 8
 
-; ============================================================================
 ; STACK SECTION
-; ============================================================================
 
 section .bss
 align 16
 
 ; Kernel stacks
-kernel_stack0: resb 16384
+kernel_stack0: resb 8192
 kernel_stack1: resb 16384
-kernel_stack2: resb 16384
+kernel_stack2: resb 32768
 
 ; Thread structures
 thread0: resb thread.size
