@@ -1,11 +1,11 @@
-; ============================================================================
+
 ; WINDOWS NT KERNEL CORE (x86-64 Assembly)
-; ============================================================================
+
 ; This represents a simplified Windows NT kernel (ntoskrnl.exe)
 ; - Executive layer (object manager, I/O manager, etc.)
 ; - Kernel layer (scheduling, synchronization)
 ; - HAL (Hardware Abstraction Layer)
-; ============================================================================
+
 
 [BITS 64]
 [ORG 0xFFFFF80000000000]  ; Windows kernel virtual address space
@@ -17,9 +17,9 @@ global KiDispatchInterrupt
 global KiTrapFrame
 global MmAccessFault
 
-; ============================================================================
+
 ; WINDOWS NT CONSTANTS AND STRUCTURES
-; ============================================================================
+
 
 ; Processor modes
 KERNEL_MODE    equ 0
@@ -41,9 +41,9 @@ NORMAL_PRIORITY         equ 8
 BELOW_NORMAL_PRIORITY   equ 6
 IDLE_PRIORITY           equ 4
 
-; ============================================================================
+
 ; KPROCESS STRUCTURE (Process Control Block)
-; ============================================================================
+
 
 struc KPROCESS
     .Header:            resb 24   ; DISPATCHER_HEADER
@@ -74,9 +74,9 @@ struc KPROCESS
     .size:
 endstruc
 
-; ============================================================================
+
 ; KTHREAD STRUCTURE (Thread Control Block)
-; ============================================================================
+
 
 struc KTHREAD
     .Header:            resb 24   ; DISPATCHER_HEADER
@@ -114,9 +114,9 @@ struc KTHREAD
     .size:
 endstruc
 
-; ============================================================================
+
 ; KERNEL ENTRY POINT (NTOSKRNL)
-; ============================================================================
+
 
 _start:
     ; Windows kernel entry point
@@ -184,9 +184,9 @@ KiSystemStartup:
     pop rbp
     ret
 
-; ============================================================================
+
 ; DISPATCHER AND SCHEDULER
-; ============================================================================
+
 
 KiDispatchInterrupt:
     ; Save context
@@ -280,9 +280,9 @@ KiSwapContext:
     pop rbp
     ret
 
-; ============================================================================
+
 ; SYSTEM CALL HANDLING (SYSCALL/SYSENTER)
-; ============================================================================
+
 
 KiSystemCall64:
     ; Save user stack pointer
@@ -359,9 +359,9 @@ KiSystemCallExit:
     swapgs
     sysretq
 
-; ============================================================================
+
 ; MEMORY MANAGEMENT
-; ============================================================================
+
 
 MmAccessFault:
     ; rcx = ExceptionInfo
@@ -443,9 +443,9 @@ MmAccessFaultRead:
     pop rbp
     ret
 
-; ============================================================================
+
 ; I/O MANAGER
-; ============================================================================
+
 
 IoCallDriver:
     ; rcx = DeviceObject, rdx = Irp
@@ -467,9 +467,9 @@ IoCallDriver:
     pop rbp
     ret
 
-; ============================================================================
+
 ; OBJECT MANAGER
-; ============================================================================
+
 
 ObCreateObject:
     ; rcx = ObjectType, rdx = ObjectAttributes, r8 = ObjectSize
@@ -514,9 +514,9 @@ ObCreateObject:
     pop rbp
     ret
 
-; ============================================================================
+
 ; EXECUTIVE SUPPORT
-; ============================================================================
+
 
 ExAllocatePoolWithTag:
     ; r8 = PoolType, r9 = NumberOfBytes, r10 = Tag
@@ -556,9 +556,9 @@ ExAllocatePoolWithTag:
     pop rbp
     ret
 
-; ============================================================================
+
 ; DATA SECTION
-; ============================================================================
+
 
 section .data
 align 4096
@@ -581,9 +581,7 @@ KiThreadListHead: dq 0
 'Thrd' equ 0x64726854        ; "Thrd"
 'Proc' equ 0x636F7250        ; "Proc"
 
-; ============================================================================
 ; STACK SECTION
-; ============================================================================
 
 section .bss
 align 16
@@ -598,6 +596,5 @@ IdleThread: resb KTHREAD.size
 
 ; Non-paged pool
 NonPagedPool: resb 0x100000  ; 1MB non-paged pool
-
 ; Paged pool
 PagedPool: resb 0x1000000    ; 16MB paged pool
