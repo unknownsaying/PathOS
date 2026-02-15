@@ -1,5 +1,5 @@
 # Path
-In honor of Richard Feymann Path Integral, Heisenberg Matrix quantum machanics, Schodinger Wave Function Collapse
+In honor of Richard Feymann Path Integral, Heisenberg Matrix quantum mechanics, Schodinger Wave Function Collapse
 # Fundamental Equations:
 1. Schrödinger Equation: iħ ∂ψ/∂t = -ħ²/2m ∇²ψ + Vψ
 2. Time-Independent SE: Hψ = Eψ
